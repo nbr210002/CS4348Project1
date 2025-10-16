@@ -1,14 +1,34 @@
-// Pseudocode for what to do... maybe
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.lang.*;
+import java.util.Scanner;
 
-/* open logFile
+public class Logger
+{
+    private String logFilePath;
 
-read line from stdin
-if line == QUIT then break;
+    // Set logFilePath to filePath
+    public Logger(String filepath)
+    {
+        logFilePath = filepath;
+    }
 
-action = first word of the sentence
-message = the rest of the sentence
-timestamp in y/m/d format
+    // Logs actions and message
+    public void log(String action, String message)
+    {
+       try(FileWriter fw = new FileWriter(logFilePath, true); BufferedWriter bw = new BufferedWriter(fw); PrintWriter pw = new PrintWriter(bw))
+        {
+            // Timestamp format
+            String timeStamp = LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+            pw.println(timeStamp + " " + action + " " + message); // Print to logfile
+        }
 
-send to logfile = timestamp + action + message
-close
- */
+       // If cannot be written to logfile
+        catch (IOException exception)
+        {
+            System.out.println("ERROR Could not write to log file ");
+        }
+    }
+}
