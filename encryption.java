@@ -6,7 +6,7 @@ import java.util.*;
 public class Encryption
 {
     // Store passkey
-    String passkey = null;
+    String pass = null;
 
     // Check if the String has letters only
     private static boolean lettersOnly(String x)
@@ -45,7 +45,7 @@ public class Encryption
         return result.toString();
     }
 
-    // Decrption using Vigenere Cipher
+    // Decryption using Vigenere Cipher
     private static String vigenereCipherDecrypt(String text, String key)
     {
         StringBuilder result = new StringBuilder();
@@ -86,20 +86,19 @@ public class Encryption
             switch (command)
             {
                 case "PASS":
-                case "PASSKEY" :
                     if (!lettersOnly(argument))
                     {
                         System.out.println("ERROR Passkey must only contain letters");
                     }
                     else
                     {
-                        encrypt.passkey = setToNormal(argument);
+                        encrypt.pass = setToNormal(argument);
                         System.out.println("RESULT");
                     }
                     break;
 
                 case "ENCRYPT" :
-                    if (encrypt.passkey == null)
+                    if (encrypt.pass == null)
                     {
                         System.out.println("ERROR Passkey not set");
                     }
@@ -111,14 +110,14 @@ public class Encryption
                         }
                         else
                         {
-                            String out = vigenereCipherEncrypt(argument, encrypt.passkey);
+                            String out = vigenereCipherEncrypt(argument, encrypt.pass);
                             System.out.println("RESULT " + out);
                         }
                     }
                     break;
 
                 case "DECRYPT" :
-                    if (encrypt.passkey == null)
+                    if (encrypt.pass == null)
                     {
                         System.out.println("ERROR Passkey not set");
                     }
@@ -128,7 +127,7 @@ public class Encryption
                     }
                     else
                     {
-                        String out = vigenereCipherDecrypt(argument, encrypt.passkey);
+                        String out = vigenereCipherDecrypt(argument, encrypt.pass);
                         System.out.println("RESULT " + out);
                     }
                     break;

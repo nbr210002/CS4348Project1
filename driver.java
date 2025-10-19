@@ -5,6 +5,7 @@ public class Driver
 {
     public static void main(String[] args)
     {
+        // Check for argument
         if (args.length < 1)
         {
             System.out.println("Usage: java Driver <logFileName>");
@@ -16,76 +17,139 @@ public class Driver
         List<String> history = new ArrayList<>();
         String currentPassword = null;
 
+        BufferedWriter loggerWriter = null;
+        BufferedWriter encryptionWriter = null;
+        BufferedReader encryptionReader = null;
+
         try
         {
             // Logger Process
             ProcessBuilder loggerBuilder = new ProcessBuilder("java", "Logger", logFileName);
             Process loggerProcess = loggerBuilder.start();
-            BufferedWriter loggerWriter = new BufferedWriter(new OutputStreamWriter(loggerProcess.getOutputStream()));
+            loggerWriter = new BufferedWriter(new OutputStreamWriter(loggerProcess.getOutputStream()));
 
             // Encryption Process
             ProcessBuilder encryptionBuilder = new ProcessBuilder("java", "Encryption");
             Process encryptionProcess = encryptionBuilder.start();
-            BufferedWriter encryptionWriter = new BufferedWriter(new OutputStreamWriter(encryptionProcess.getOutputStream()));
-            BufferedReader encryptionReader = new BufferedReader(new InputStreamReader(encryptionProcess.getInputStream()));
+            encryptionWriter = new BufferedWriter(new OutputStreamWriter(encryptionProcess.getOutputStream()));
+            encryptionReader = new BufferedReader(new InputStreamReader(encryptionProcess.getInputStream()));
 
-            // Start Logger Program
+            // Log that Driver has started
             loggerWriter.write("START Driver Started\n");
             loggerWriter.flush();
 
             boolean running = true;
             while (running)
             {
+                // Display menu
                 System.out.println("\nMenu: password | encrypt | decrypt | history | quit");
                 System.out.print("Enter command: ");
                 String input = scanner.nextLine().trim().toLowerCase();
 
                 switch (input)
                 {
-                    case "history":
-                        System.out.println("History: ");
-                        for (int i = 0; i < history.size(); i++)
+                    case "history" :
+                        if (history.isEmpty())
                         {
-                            System.out.println((i + 1) + ": " + history.get(i));
+                            System.out.println("History is empty.");
+                        }
+                        else
+                        {
+                            System.out.println("History: ");
+                            for (int i = 0; i < history.size(); i++)
+                            {
+                                System.out.println((i + 1) + ": " + history.get(i));
+                            }
                         }
                         break;
 
                     case "password":
-                        System.out.print("Enter password: ");
-                        currentPassword = scanner.nextLine().trim();
+                        boolean useHistory = false;
+                        if (!history.isEmpty())
+                        {
+                            System.out.print("Use string from history? (y/n): ");
+                            String choice = scanner.nextLine().trim().toLowerCase();
+                            useHistory = choice.equals("y");
 
-                        // Send passkey to encryption program
-                        encryptionWriter.write("PASS " + currentPassword + "\n");
-                        encryptionWriter.flush();
+                            if (useHistory)
+                            {
+                                for (int i = 0; i < history.size(); i++)
+                                {
+                                    System.out.println((i + 1) + ": " + history.get(i));
+                                }
+                                System.out.println("Select number or 0 to enter new password: ");
 
-                        // Encryption process reads
-                        String readResponse = encryptionReader.readLine();
-                        System.out.println(readResponse);
+                                try
+                                {
+                                    int select = Integer.parseInt(scanner.nextLine().trim());
+                                    if (select > 0 && select <= history.size())
+                                    {
+                                        currentPassword = history.get(select - 1);
+                                    }
+                                    else
+                                    {
+                                        // If invalid
+                                        currentPassword = null;
+                                    }
+                                }
+                                catch(NumberFormatException exception)
+                                {
+                                    System.out.println("Invalid selection. Entering new password. ");
+                                }
+                            }
 
-                        // Log action
-                        loggerWriter.write("PASSWORD " + (currentPassword.isEmpty() ? "No password entered" : "Password set") + "\n");
-                        loggerWriter.flush();
+                            if (currentPassword == null || !useHistory)
+                            {
+                                System.out.print("Enter password: ");
+                                currentPassword = scanner.nextLine().trim();
+                            }
+
+                            if (!currentPassword.matches("[A-Za-z]+"))
+                            {
+                                System.out.println("ERROR Password must contain letters only");
+                            }
+                            else
+                            {
+                                // Send passkey to encryption program
+                                encryptionWriter.write("PASS " + currentPassword + "\n");
+                                encryptionWriter.flush();
+                                // Encryption process reads
+                                String readResponse = encryptionReader.readLine();
+                                System.out.println(readResponse);
+                                // Log action
+                                loggerWriter.write("PASSWORD set\n");
+                                loggerWriter.flush();
+                            }
+                        }
                         break;
 
                     case "encrypt":
                         System.out.print("Enter text to encrypt: ");
                         String plainText = scanner.nextLine().trim();
 
-                        // Send encrypt command to the encryption process
+                        // If input is invalid
+                        if (!plainText.matches("[A-Za-z]+"))
+                        {
+                            System.out.println("ERROR Invalid input (letters only)");
+                            break;
+                        }
+
+                        // Send encrypt command to encryption process
                         encryptionWriter.write("ENCRYPT " + plainText + "\n");
                         encryptionWriter.flush();
 
-                        // Encryption reads response
+                        // Encryption reads response and prints
                         String encryptResponse = encryptionReader.readLine();
                         System.out.println(encryptResponse);
 
                         // Adds to history
                         if (encryptResponse.startsWith("RESULT"))
                         {
-                            history.add(encryptResponse.substring(7));
+                            String result = encryptResponse.split(" ", 2)[1];
+                            history.add(result);
                         }
 
-                        // Log action
+                        // Logs action
                         loggerWriter.write("ENCRYPT " + plainText + "\n");
                         loggerWriter.flush();
                         break;
@@ -94,20 +158,29 @@ public class Driver
                         System.out.print("Enter text to decrypt: ");
                         String cipherText = scanner.nextLine().trim();
 
-                        // Send decrypt command to the decrypt process
+                        // If input is invalid
+                        if (!cipherText.matches("[A-Za-z]+"))
+                        {
+                            System.out.println("ERROR Invalid input (letters only)");
+                            break;
+                        }
+
+                        // Send decrypt command to decrypt process
                         encryptionWriter.write("DECRYPT " + cipherText + "\n");
                         encryptionWriter.flush();
 
-                        // Read response
+                        // Read response and print
                         String decryptResponse = encryptionReader.readLine();
                         System.out.println(decryptResponse);
 
                         // Add to history
                         if (decryptResponse.startsWith("RESULT"))
                         {
-                            history.add(decryptResponse.substring(7));
+                            String result = decryptResponse.split(" ", 2)[1];
+                            history.add(result);
                         }
 
+                        // Log action
                         loggerWriter.write("DECRYPT " + cipherText + "\n");
                         loggerWriter.flush();
                         break;
@@ -119,11 +192,7 @@ public class Driver
                         loggerWriter.write("QUIT Driver quitting\n");
                         loggerWriter.flush();
 
-                        // Close logger and encryption
-                        encryptionWriter.close();
-                        encryptionReader.close();
-                        loggerWriter.close();
-
+                        // Exits loop
                         running = false;
                         break;
 
@@ -133,50 +202,26 @@ public class Driver
                 }
             }
         }
-
         // Exception handler
         catch (IOException exception)
         {
             System.out.println("ERROR: " + exception.getMessage());
             exception.printStackTrace();
         }
+        finally
+        {
+            try
+            {
+                // Close everything
+                if (encryptionWriter != null) encryptionWriter.close();
+                if (encryptionReader != null) encryptionReader.close();
+                if (loggerWriter != null) loggerWriter.close();
+            }
+            catch (IOException exception)
+            {
+                System.out.println("ERROR closing resources: " + exception.getMessage());
+            }
+            scanner.close();
+        }
     }
 }
-
-/*
-loggerProcess = start with logFileName
-start encryption
-
-use engryptionWriter and encryptionReader
-
-give menu options
-if userInput == password
-    then give option to choose password
-    or create new password
-
-if userInput == encrypt
-    then give option to choose
-    send to encryption writer
-    enryptionReader reads
-    print
-    if success then add output to history
-    log
-
-if userInput == decrypt
-    then give option to choose
-    send to encryption writer
-    enryptionReader reads
-    print
-    if success then add output to history
-    log
-
- if userInput == history
-    display history
-
- if userInput = QUIT
-    QUIT encryptionWriter
-    QUIT loggerWriter
-
- if userInput = none of the options
-    print "invalid"
- */
