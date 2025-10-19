@@ -20,30 +20,6 @@ public class Encryption
         return x.toUpperCase();
     }
 
-    // Set passkey if it is valid
-    public void setPassKey(String key)
-    {
-        if(lettersOnly(key))
-        {
-            passkey = setToNormal(key);
-            System.out.println("RESULT Passkey set");
-        }
-        else
-        {
-            System.out.println("ERROR Passkey must contain only letters.");
-        }
-    }
-
-    //Encrypt using passkey
-    public String encrypt(String text)
-    {
-        if (passkey == null)
-        {
-            return "ERROR Password not set";
-        }
-        return "RESULT " + vigenereCipherEncrypt(text, passkey);
-    }
-
     // Encryption using Vigenere Cipher
     private static String vigenereCipherEncrypt(String text, String key)
     {
@@ -69,16 +45,6 @@ public class Encryption
         return result.toString();
     }
 
-    // Decrypt using the passkey
-    public String decrypt(String text)
-    {
-        if (passkey == null)
-        {
-            return "ERROR Password not set";
-        }
-        return "RESULT " + vigenereCipherDecrypt(text, passkey);
-    }
-
     // Decrption using Vigenere Cipher
     private static String vigenereCipherDecrypt(String text, String key)
     {
@@ -102,4 +68,81 @@ public class Encryption
         }
         return result.toString();
     }
+
+    public static void main(String[] args)
+    {
+        Encryption encrypt = new Encryption();
+        Scanner scan = new Scanner(System.in);
+
+        while (scan.hasNextLine())
+        {
+            String line = scan.nextLine().trim();
+            if (line.isEmpty()) continue;
+
+            String[] parts = line.split("\\s+",2);
+            String command = parts[0].toUpperCase();
+            String argument = (parts.length > 1) ? parts[1] : "";
+
+            switch (command)
+            {
+                case "PASS":
+                case "PASSKEY" :
+                    if (!lettersOnly(argument))
+                    {
+                        System.out.println("ERROR Passkey must only contain letters");
+                    }
+                    else
+                    {
+                        encrypt.passkey = setToNormal(argument);
+                        System.out.println("RESULT");
+                    }
+                    break;
+
+                case "ENCRYPT" :
+                    if (encrypt.passkey == null)
+                    {
+                        System.out.println("ERROR Passkey not set");
+                    }
+                    else
+                    {
+                        if (!argument.matches("[A-Za-z]+"))
+                        {
+                            System.out.println("ERROR Invalid input (letters only)");
+                        }
+                        else
+                        {
+                            String out = vigenereCipherEncrypt(argument, encrypt.passkey);
+                            System.out.println("RESULT " + out);
+                        }
+                    }
+                    break;
+
+                case "DECRYPT" :
+                    if (encrypt.passkey == null)
+                    {
+                        System.out.println("ERROR Passkey not set");
+                    }
+                    else if (!argument.matches("[A-Za-z]+"))
+                    {
+                        System.out.println("ERROR Invalid input (letters only)");
+                    }
+                    else
+                    {
+                        String out = vigenereCipherDecrypt(argument, encrypt.passkey);
+                        System.out.println("RESULT " + out);
+                    }
+                    break;
+
+                case "QUIT" :
+                    scan.close();
+                    return;
+
+                default :
+                    System.out.println("ERROR Unknown command");
+            }
+        }
+
+        scan.close();
+    }
 }
+
