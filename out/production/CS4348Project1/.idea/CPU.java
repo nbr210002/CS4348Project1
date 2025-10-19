@@ -9,45 +9,34 @@ public class CPU
         try
         {
             Process mem = Runtime.getRuntime().exec("java MainMemory");
-            BufferedReader fromMem = new BufferedReader(new InputStreamReader(mem.getInputStream()));
-            PrintWriter toMem = new PrintWriter(mem.getOutputStream(), true);
+            InputStream inStream = mem.getInputStream();
+            OutputStream outStream = mem.getOutputStream();
+            Scanner fromMem = new Scanner(inStream);
+            PrintStream toMem = new PrintStream(outStream);
 
             for(int i=10; i>=0; i--)
             {
                 toMem.println("write");
                 toMem.println(i);
 
-                toMem.println("read");
-
                 System.out.print("Set to ");
-                String line = fromMem.readLine();
-
-                if ( line != null)
-                {
-                    int value = Integer.parseInt(line.trim());
-                    System.out.println(value);
-                }
-                else
-                {
-                    System.out.println("ERROR No data received from MainMemory");
-                }
+                toMem.println("read");
+                toMem.flush();
+                System.out.println(fromMem.nextInt());
             }
 
             toMem.println("halt");
-            mem.waitFor();
-            fromMem.close();
-            toMem.close();
-        }
+            toMem.flush();
 
+            mem.waitFor();
+        }
         catch(IOException ex)
         {
             System.out.println("Unable to run MainMemory");
-            ex.printStackTrace();
         }
         catch(InterruptedException ex)
         {
             System.out.println("Unexpected Termination");
-            ex.printStackTrace();
         }
     }
 }

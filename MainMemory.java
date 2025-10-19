@@ -1,25 +1,35 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.*;
 import java.util.Scanner;
 
 public class MainMemory
 {
-
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
-        String mode;
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int memLoc = 0;
 
-        Scanner s = new Scanner(System.in);
-
-        mode = s.next();
-
-        while(!mode.equals("halt"))
+        String line;
+        while ((line = br.readLine()) != null)
         {
-            if(mode.equals("read")) System.out.println(memLoc);
-            else if(mode.equals("write")) memLoc = s.nextInt();
+            line = line.trim();
+            if (line.equalsIgnoreCase("halt")) break;
 
-            mode = s.next();
+            if (line.equalsIgnoreCase("read"))
+            {
+                System.out.println(memLoc);
+                System.out.flush();
+            }
+            else if (line.equalsIgnoreCase("write")) {
+                String valueLine = br.readLine();
+                if (valueLine != null)
+                {
+                    memLoc = Integer.parseInt(valueLine.trim());
+                }
+
+            }
         }
     }
 }
-//Testing to make sure that comments can be seen on github
