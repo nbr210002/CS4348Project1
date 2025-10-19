@@ -3,7 +3,7 @@ import java.io.*;
 import java.util.Scanner;
 import java.util.*;
 
-public class Encryption
+public class encryption
 {
     // Store passkey
     String pass = null;
@@ -71,7 +71,7 @@ public class Encryption
 
     public static void main(String[] args)
     {
-        Encryption encrypt = new Encryption();
+        encryption encrypt = new encryption();
         Scanner scan = new Scanner(System.in);
 
         while (scan.hasNextLine())

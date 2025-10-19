@@ -4,12 +4,12 @@ import java.time.format.DateTimeFormatter;
 import java.lang.*;
 import java.util.Scanner;
 
-public class Logger
+public class logger
 {
     private String logFilePath;
 
     // Set logFilePath to filePath
-    public Logger(String filepath)
+    public logger(String filepath)
     {
         logFilePath = filepath;
     }
@@ -22,7 +22,7 @@ public class Logger
             // Timestamp format
             String timeStamp = LocalDateTime.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            pw.println(timeStamp + " " + action + " " + message); // Print to logfile
+            pw.println(timeStamp + " [" + action + "] " + message); // Print to logfile
         }
 
        // If cannot be written to logfile
@@ -41,7 +41,7 @@ public class Logger
         }
 
         String logFileName = args[0];
-        Logger logger = new Logger(logFileName);
+        logger logger = new logger(logFileName);
         Scanner scan = new Scanner(System.in);
 
         while (true)
