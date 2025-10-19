@@ -21,7 +21,7 @@ public class Logger
         {
             // Timestamp format
             String timeStamp = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             pw.println(timeStamp + " " + action + " " + message); // Print to logfile
         }
 
@@ -30,5 +30,35 @@ public class Logger
         {
             System.out.println("ERROR Could not write to log file ");
         }
+    }
+
+    public static void main(String[] args)
+    {
+        if (args.length < 1)
+        {
+            System.out.println("Usage: java Logger <logFileName>");
+            return;
+        }
+
+        String logFileName = args[0];
+        Logger logger = new Logger(logFileName);
+        Scanner scan = new Scanner(System.in);
+
+        while (true)
+        {
+            String line = scan.nextLine().trim();
+            if(line.equalsIgnoreCase("QUIT"))
+            {
+                break;
+            }
+            if (!line.isEmpty())
+            {
+                String[] parts = line.split("\\s+", 2);
+                String action = parts[0];
+                String message = (parts.length > 1) ? parts[1] : "";
+                logger.log(action, message);
+            }
+        }
+        scan.close();
     }
 }
